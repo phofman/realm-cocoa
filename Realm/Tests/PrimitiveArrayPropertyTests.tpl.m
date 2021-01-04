@@ -905,4 +905,201 @@ static NSArray *sortedDistinctUnion(id array, NSString *type, NSString *prop) {
     [(RLMNotificationToken *)token invalidate];
 }
 
+#pragma mark - Queries
+
+#define RLMAssertCount(cls, expectedCount, ...) \
+    XCTAssertEqual(expectedCount, ([cls objectsInRealm:realm where:__VA_ARGS__].count))
+
+- (void)createObjectWithValueIndex:(NSUInteger)index {
+    NSRange range = {index, 1};
+    [AllPrimitiveArrays createInRealm:realm withValue:@{
+        %r %man @"$prop": [$values subarrayWithRange:range],
+    }];
+    [AllOptionalPrimitiveArrays createInRealm:realm withValue:@{
+        %o %man @"$prop": [$values subarrayWithRange:range],
+    }];
+}
+
+- (void)testQueryBasicOperators {
+    [realm deleteAllObjects];
+
+    RLMAssertCount($class, 0, @"ANY $prop = %@", $v0);
+    RLMAssertCount($class, 0, @"ANY $prop != %@", $v0);
+    %minmax RLMAssertCount($class, 0, @"ANY $prop > %@", $v0);
+    %minmax RLMAssertCount($class, 0, @"ANY $prop >= %@", $v0);
+    %minmax RLMAssertCount($class, 0, @"ANY $prop < %@", $v0);
+    %minmax RLMAssertCount($class, 0, @"ANY $prop <= %@", $v0);
+
+    [self createObjectWithValueIndex:0];
+
+    RLMAssertCount($class, 0, @"ANY $prop = %@", $v1);
+    RLMAssertCount($class, 1, @"ANY $prop = %@", $v0);
+    RLMAssertCount($class, 0, @"ANY $prop != %@", $v0);
+    RLMAssertCount($class, 1, @"ANY $prop != %@", $v1);
+    %minmax RLMAssertCount($class, 0, @"ANY $prop > %@", $v0);
+    %minmax RLMAssertCount($class, 1, @"ANY $prop >= %@", $v0);
+    %minmax RLMAssertCount($class, 0, @"ANY $prop < %@", $v0);
+    %minmax RLMAssertCount($class, 1, @"ANY $prop < %@", $v1);
+    %minmax RLMAssertCount($class, 1, @"ANY $prop <= %@", $v0);
+
+    [self createObjectWithValueIndex:1];
+
+    RLMAssertCount($class, 1, @"ANY $prop = %@", $v0);
+    RLMAssertCount($class, 1, @"ANY $prop = %@", $v1);
+    RLMAssertCount($class, 1, @"ANY $prop != %@", $v0);
+    RLMAssertCount($class, 1, @"ANY $prop != %@", $v1);
+    %minmax RLMAssertCount($class, 1, @"ANY $prop > %@", $v0);
+    %minmax RLMAssertCount($class, 2, @"ANY $prop >= %@", $v0);
+    %minmax RLMAssertCount($class, 0, @"ANY $prop < %@", $v0);
+    %minmax RLMAssertCount($class, 1, @"ANY $prop < %@", $v1);
+    %minmax RLMAssertCount($class, 1, @"ANY $prop <= %@", $v0);
+    %minmax RLMAssertCount($class, 2, @"ANY $prop <= %@", $v1);
+
+    %nominmax RLMAssertThrowsWithReason(([$class objectsInRealm:realm where:@"ANY $prop > %@", $v0]), ^n @"Operator '>' not supported for type '$basetype'");
+}
+
+- (void)testQueryBetween {
+    [realm deleteAllObjects];
+
+    %nominmax RLMAssertThrowsWithReason(([$class objectsInRealm:realm where:@"ANY $prop BETWEEN %@", @[$v0, $v1]]), ^n @"Operator 'BETWEEN' not supported for type '$basetype'");
+
+    %minmax RLMAssertCount($class, 0, @"ANY $prop BETWEEN %@", @[$v0, $v1]);
+
+    [self createObjectWithValueIndex:0];
+
+    %minmax RLMAssertCount($class, 1, @"ANY $prop BETWEEN %@", @[$v0, $v0]);
+    %minmax RLMAssertCount($class, 1, @"ANY $prop BETWEEN %@", @[$v0, $v1]);
+    %minmax RLMAssertCount($class, 0, @"ANY $prop BETWEEN %@", @[$v1, $v1]);
+}
+
+- (void)testQueryIn {
+    [realm deleteAllObjects];
+
+    RLMAssertCount($class, 0, @"ANY $prop IN %@", @[$v0, $v1]);
+
+    [self createObjectWithValueIndex:0];
+
+    RLMAssertCount($class, 0, @"ANY $prop IN %@", @[$v1]);
+    RLMAssertCount($class, 1, @"ANY $prop IN %@", @[$v0, $v1]);
+}
+
+- (void)testQueryCount {
+    [realm deleteAllObjects];
+
+    [AllPrimitiveArrays createInRealm:realm withValue:@{
+        %r %man @"$prop": @[],
+    }];
+    [AllOptionalPrimitiveArrays createInRealm:realm withValue:@{
+        %o %man @"$prop": @[],
+    }];
+    [AllPrimitiveArrays createInRealm:realm withValue:@{
+        %r %man @"$prop": @[$v0],
+    }];
+    [AllOptionalPrimitiveArrays createInRealm:realm withValue:@{
+        %o %man @"$prop": @[$v0],
+    }];
+    [AllPrimitiveArrays createInRealm:realm withValue:@{
+        %r %man @"$prop": @[$v0, $v0],
+    }];
+    [AllOptionalPrimitiveArrays createInRealm:realm withValue:@{
+        %o %man @"$prop": @[$v0, $v0],
+    }];
+
+    for (unsigned int i = 0; i < 3; ++i) {
+        %man RLMAssertCount($class, 1U, @"$prop.@count == %@", @(i));
+        %man RLMAssertCount($class, 2U, @"$prop.@count != %@", @(i));
+        %man RLMAssertCount($class, 2 - i, @"$prop.@count > %@", @(i));
+        %man RLMAssertCount($class, 3 - i, @"$prop.@count >= %@", @(i));
+        %man RLMAssertCount($class, i, @"$prop.@count < %@", @(i));
+        %man RLMAssertCount($class, i + 1, @"$prop.@count <= %@", @(i));
+    }
+}
+
+- (void)testQuerySum {
+}
+
+- (void)testQueryAverage {
+}
+
+- (void)testQueryMin {
+    [realm deleteAllObjects];
+
+    %nominmax %man RLMAssertThrowsWithReason(([$class objectsInRealm:realm where:@"$prop.@min = %@", $v0]), ^n @"@min can only be applied to a numeric property.");
+
+    // No objects, so count is zero
+    %minmax %man RLMAssertCount($class, 0U, @"$prop.@min == %@", $v0);
+
+    [AllPrimitiveArrays createInRealm:realm withValue:@{}];
+    [AllOptionalPrimitiveArrays createInRealm:realm withValue:@{}];
+
+    // Only empty arrays, so count is zero
+    %minmax %man RLMAssertCount($class, 0U, @"$prop.@min == %@", $v0);
+    %minmax %man RLMAssertCount($class, 0U, @"$prop.@min == %@", $v1);
+
+    [self createObjectWithValueIndex:0];
+
+    // One object where v0 is min and zero with v1
+    %minmax %man RLMAssertCount($class, 1U, @"$prop.@min == %@", $v0);
+    %minmax %man RLMAssertCount($class, 0U, @"$prop.@min == %@", $v1);
+
+    [self createObjectWithValueIndex:1];
+
+    // One object where v0 is min and one with v1
+    %minmax %man RLMAssertCount($class, 1U, @"$prop.@min == %@", $v0);
+    %minmax %man RLMAssertCount($class, 1U, @"$prop.@min == %@", $v1);
+
+    [AllPrimitiveArrays createInRealm:realm withValue:@{
+        %minmax %r %man @"$prop": @[$v1, $v0],
+    }];
+    [AllOptionalPrimitiveArrays createInRealm:realm withValue:@{
+        %minmax %o %man @"$prop": @[$v1, $v0],
+    }];
+
+    // New object with both v0 and v1 matches v0 but not v1
+    %minmax %man RLMAssertCount($class, 2U, @"$prop.@min == %@", $v0);
+    %minmax %man RLMAssertCount($class, 1U, @"$prop.@min == %@", $v1);
+}
+
+- (void)testQueryMax {
+    [realm deleteAllObjects];
+
+    %nominmax %man RLMAssertThrowsWithReason(([$class objectsInRealm:realm where:@"$prop.@max = %@", $v0]), ^n @"@max can only be applied to a numeric property.");
+
+    // No objects, so count is zero
+    %minmax %man RLMAssertCount($class, 0U, @"$prop.@max == %@", $v0);
+
+    [AllPrimitiveArrays createInRealm:realm withValue:@{}];
+    [AllOptionalPrimitiveArrays createInRealm:realm withValue:@{}];
+
+    // Only empty arrays, so count is zero
+    %minmax %man RLMAssertCount($class, 0U, @"$prop.@max == %@", $v0);
+    %minmax %man RLMAssertCount($class, 0U, @"$prop.@max == %@", $v1);
+
+    [self createObjectWithValueIndex:0];
+
+    // One object where v0 is min and zero with v1
+    %minmax %man RLMAssertCount($class, 1U, @"$prop.@max == %@", $v0);
+    %minmax %man RLMAssertCount($class, 0U, @"$prop.@max == %@", $v1);
+
+    [self createObjectWithValueIndex:1];
+
+    // One object where v0 is min and one with v1
+    %minmax %man RLMAssertCount($class, 1U, @"$prop.@max == %@", $v0);
+    %minmax %man RLMAssertCount($class, 1U, @"$prop.@max == %@", $v1);
+
+    [AllPrimitiveArrays createInRealm:realm withValue:@{
+        %minmax %r %man @"$prop": @[$v1, $v0],
+    }];
+    [AllOptionalPrimitiveArrays createInRealm:realm withValue:@{
+        %minmax %o %man @"$prop": @[$v1, $v0],
+    }];
+
+    // New object with both v0 and v1 matches v1 but not v0
+    %minmax %man RLMAssertCount($class, 1U, @"$prop.@max == %@", $v0);
+    %minmax %man RLMAssertCount($class, 2U, @"$prop.@max == %@", $v1);
+}
+
+- (void)testQueryArgumentValidation {
+}
+
 @end

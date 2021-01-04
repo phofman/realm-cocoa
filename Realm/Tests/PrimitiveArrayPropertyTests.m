@@ -5664,4 +5664,1453 @@ static NSArray *sortedDistinctUnion(id array, NSString *type, NSString *prop) {
     [(RLMNotificationToken *)token invalidate];
 }
 
+#pragma mark - Queries
+
+#define RLMAssertCount(cls, expectedCount, ...) \
+    XCTAssertEqual(expectedCount, ([cls objectsInRealm:realm where:__VA_ARGS__].count))
+
+- (void)createObjectWithValueIndex:(NSUInteger)index {
+    NSRange range = {index, 1};
+    [AllPrimitiveArrays createInRealm:realm withValue:@{
+        @"boolObj": [@[@NO, @YES] subarrayWithRange:range],
+        @"intObj": [@[@2, @3] subarrayWithRange:range],
+        @"floatObj": [@[@2.2f, @3.3f] subarrayWithRange:range],
+        @"doubleObj": [@[@2.2, @3.3] subarrayWithRange:range],
+        @"stringObj": [@[@"a", @"b"] subarrayWithRange:range],
+        @"dataObj": [@[data(1), data(2)] subarrayWithRange:range],
+        @"dateObj": [@[date(1), date(2)] subarrayWithRange:range],
+        @"decimalObj": [@[decimal128(1), decimal128(2)] subarrayWithRange:range],
+        @"objectIdObj": [@[objectId(1), objectId(2)] subarrayWithRange:range],
+    }];
+    [AllOptionalPrimitiveArrays createInRealm:realm withValue:@{
+        @"boolObj": [@[@NO, @YES, NSNull.null] subarrayWithRange:range],
+        @"intObj": [@[@2, @3, NSNull.null] subarrayWithRange:range],
+        @"floatObj": [@[@2.2f, @3.3f, NSNull.null] subarrayWithRange:range],
+        @"doubleObj": [@[@2.2, @3.3, NSNull.null] subarrayWithRange:range],
+        @"stringObj": [@[@"a", @"b", NSNull.null] subarrayWithRange:range],
+        @"dataObj": [@[data(1), data(2), NSNull.null] subarrayWithRange:range],
+        @"dateObj": [@[date(1), date(2), NSNull.null] subarrayWithRange:range],
+        @"decimalObj": [@[decimal128(1), decimal128(2), NSNull.null] subarrayWithRange:range],
+        @"objectIdObj": [@[objectId(1), objectId(2), NSNull.null] subarrayWithRange:range],
+    }];
+}
+
+- (void)testQueryBasicOperators {
+    [realm deleteAllObjects];
+
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY boolObj = %@", @NO);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj = %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj = %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj = %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY stringObj = %@", @"a");
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dataObj = %@", data(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj = %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj = %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY objectIdObj = %@", objectId(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY boolObj = %@", @NO);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj = %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj = %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj = %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY stringObj = %@", @"a");
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dataObj = %@", data(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj = %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj = %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY objectIdObj = %@", objectId(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY boolObj = %@", @NO);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj = %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj = %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj = %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY stringObj = %@", @"a");
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dataObj = %@", data(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj = %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj = %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY objectIdObj = %@", objectId(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY boolObj = %@", @NO);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj = %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj = %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj = %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY stringObj = %@", @"a");
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dataObj = %@", data(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj = %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj = %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY objectIdObj = %@", objectId(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY boolObj != %@", @NO);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj != %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj != %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj != %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY stringObj != %@", @"a");
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dataObj != %@", data(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj != %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj != %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY objectIdObj != %@", objectId(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY boolObj != %@", @NO);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj != %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj != %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj != %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY stringObj != %@", @"a");
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dataObj != %@", data(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj != %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj != %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY objectIdObj != %@", objectId(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY boolObj != %@", @NO);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj != %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj != %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj != %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY stringObj != %@", @"a");
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dataObj != %@", data(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj != %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj != %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY objectIdObj != %@", objectId(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY boolObj != %@", @NO);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj != %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj != %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj != %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY stringObj != %@", @"a");
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dataObj != %@", data(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj != %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj != %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY objectIdObj != %@", objectId(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj > %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj > %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj > %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj > %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj > %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj > %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj > %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj > %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj > %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj > %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj > %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj > %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj > %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj > %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj > %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj > %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj > %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj > %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj > %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj > %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj >= %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj >= %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj >= %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj >= %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj >= %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj >= %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj >= %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj >= %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj >= %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj >= %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj >= %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj >= %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj >= %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj >= %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj >= %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj >= %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj >= %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj >= %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj >= %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj >= %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj < %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj < %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj < %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj < %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj < %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj < %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj < %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj < %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj < %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj < %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj < %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj < %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj < %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj < %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj < %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj < %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj < %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj < %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj < %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj < %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj <= %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj <= %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj <= %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj <= %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj <= %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj <= %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj <= %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj <= %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj <= %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj <= %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj <= %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj <= %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj <= %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj <= %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj <= %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj <= %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj <= %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj <= %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj <= %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj <= %@", decimal128(1));
+
+    [self createObjectWithValueIndex:0];
+
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY boolObj = %@", @YES);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj = %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj = %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj = %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY stringObj = %@", @"b");
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dataObj = %@", data(2));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj = %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj = %@", decimal128(2));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY objectIdObj = %@", objectId(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY boolObj = %@", @YES);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj = %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj = %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj = %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY stringObj = %@", @"b");
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dataObj = %@", data(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj = %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj = %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY objectIdObj = %@", objectId(2));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY boolObj = %@", @YES);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj = %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj = %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj = %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY stringObj = %@", @"b");
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dataObj = %@", data(2));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj = %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj = %@", decimal128(2));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY objectIdObj = %@", objectId(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY boolObj = %@", @YES);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj = %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj = %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj = %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY stringObj = %@", @"b");
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dataObj = %@", data(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj = %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj = %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY objectIdObj = %@", objectId(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY boolObj = %@", @NO);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj = %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj = %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj = %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY stringObj = %@", @"a");
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dataObj = %@", data(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj = %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj = %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY objectIdObj = %@", objectId(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY boolObj = %@", @NO);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj = %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj = %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj = %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY stringObj = %@", @"a");
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dataObj = %@", data(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj = %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj = %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY objectIdObj = %@", objectId(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY boolObj = %@", @NO);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj = %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj = %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj = %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY stringObj = %@", @"a");
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dataObj = %@", data(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj = %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj = %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY objectIdObj = %@", objectId(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY boolObj = %@", @NO);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj = %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj = %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj = %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY stringObj = %@", @"a");
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dataObj = %@", data(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj = %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj = %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY objectIdObj = %@", objectId(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY boolObj != %@", @NO);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj != %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj != %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj != %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY stringObj != %@", @"a");
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dataObj != %@", data(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj != %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj != %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY objectIdObj != %@", objectId(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY boolObj != %@", @NO);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj != %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj != %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj != %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY stringObj != %@", @"a");
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dataObj != %@", data(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj != %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj != %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY objectIdObj != %@", objectId(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY boolObj != %@", @NO);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj != %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj != %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj != %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY stringObj != %@", @"a");
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dataObj != %@", data(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj != %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj != %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY objectIdObj != %@", objectId(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY boolObj != %@", @NO);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj != %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj != %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj != %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY stringObj != %@", @"a");
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dataObj != %@", data(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj != %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj != %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY objectIdObj != %@", objectId(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY boolObj != %@", @YES);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj != %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj != %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj != %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY stringObj != %@", @"b");
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dataObj != %@", data(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj != %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj != %@", decimal128(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY objectIdObj != %@", objectId(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY boolObj != %@", @YES);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj != %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj != %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj != %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY stringObj != %@", @"b");
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dataObj != %@", data(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj != %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj != %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY objectIdObj != %@", objectId(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY boolObj != %@", @YES);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj != %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj != %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj != %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY stringObj != %@", @"b");
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dataObj != %@", data(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj != %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj != %@", decimal128(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY objectIdObj != %@", objectId(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY boolObj != %@", @YES);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj != %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj != %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj != %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY stringObj != %@", @"b");
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dataObj != %@", data(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj != %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj != %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY objectIdObj != %@", objectId(2));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj > %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj > %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj > %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj > %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj > %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj > %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj > %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj > %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj > %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj > %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj > %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj > %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj > %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj > %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj > %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj > %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj > %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj > %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj > %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj > %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj >= %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj >= %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj >= %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj >= %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj >= %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj >= %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj >= %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj >= %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj >= %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj >= %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj >= %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj >= %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj >= %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj >= %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj >= %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj >= %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj >= %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj >= %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj >= %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj >= %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj < %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj < %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj < %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj < %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj < %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj < %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj < %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj < %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj < %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj < %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj < %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj < %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj < %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj < %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj < %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj < %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj < %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj < %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj < %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj < %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj < %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj < %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj < %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj < %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj < %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj < %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj < %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj < %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj < %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj < %@", decimal128(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj < %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj < %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj < %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj < %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj < %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj < %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj < %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj < %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj < %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj < %@", decimal128(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj <= %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj <= %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj <= %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj <= %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj <= %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj <= %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj <= %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj <= %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj <= %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj <= %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj <= %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj <= %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj <= %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj <= %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj <= %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj <= %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj <= %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj <= %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj <= %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj <= %@", decimal128(1));
+
+    [self createObjectWithValueIndex:1];
+
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY boolObj = %@", @NO);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj = %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj = %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj = %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY stringObj = %@", @"a");
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dataObj = %@", data(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj = %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj = %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY objectIdObj = %@", objectId(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY boolObj = %@", @NO);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj = %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj = %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj = %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY stringObj = %@", @"a");
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dataObj = %@", data(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj = %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj = %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY objectIdObj = %@", objectId(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY boolObj = %@", @NO);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj = %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj = %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj = %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY stringObj = %@", @"a");
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dataObj = %@", data(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj = %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj = %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY objectIdObj = %@", objectId(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY boolObj = %@", @NO);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj = %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj = %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj = %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY stringObj = %@", @"a");
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dataObj = %@", data(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj = %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj = %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY objectIdObj = %@", objectId(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY boolObj = %@", @YES);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj = %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj = %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj = %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY stringObj = %@", @"b");
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dataObj = %@", data(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj = %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj = %@", decimal128(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY objectIdObj = %@", objectId(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY boolObj = %@", @YES);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj = %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj = %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj = %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY stringObj = %@", @"b");
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dataObj = %@", data(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj = %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj = %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY objectIdObj = %@", objectId(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY boolObj = %@", @YES);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj = %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj = %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj = %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY stringObj = %@", @"b");
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dataObj = %@", data(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj = %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj = %@", decimal128(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY objectIdObj = %@", objectId(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY boolObj = %@", @YES);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj = %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj = %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj = %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY stringObj = %@", @"b");
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dataObj = %@", data(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj = %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj = %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY objectIdObj = %@", objectId(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY boolObj != %@", @NO);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj != %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj != %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj != %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY stringObj != %@", @"a");
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dataObj != %@", data(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj != %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj != %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY objectIdObj != %@", objectId(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY boolObj != %@", @NO);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj != %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj != %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj != %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY stringObj != %@", @"a");
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dataObj != %@", data(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj != %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj != %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY objectIdObj != %@", objectId(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY boolObj != %@", @NO);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj != %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj != %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj != %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY stringObj != %@", @"a");
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dataObj != %@", data(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj != %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj != %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY objectIdObj != %@", objectId(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY boolObj != %@", @NO);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj != %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj != %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj != %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY stringObj != %@", @"a");
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dataObj != %@", data(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj != %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj != %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY objectIdObj != %@", objectId(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY boolObj != %@", @YES);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj != %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj != %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj != %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY stringObj != %@", @"b");
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dataObj != %@", data(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj != %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj != %@", decimal128(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY objectIdObj != %@", objectId(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY boolObj != %@", @YES);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj != %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj != %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj != %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY stringObj != %@", @"b");
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dataObj != %@", data(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj != %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj != %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY objectIdObj != %@", objectId(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY boolObj != %@", @YES);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj != %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj != %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj != %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY stringObj != %@", @"b");
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dataObj != %@", data(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj != %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj != %@", decimal128(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY objectIdObj != %@", objectId(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY boolObj != %@", @YES);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj != %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj != %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj != %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY stringObj != %@", @"b");
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dataObj != %@", data(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj != %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj != %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY objectIdObj != %@", objectId(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj > %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj > %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj > %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj > %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj > %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj > %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj > %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj > %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj > %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj > %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj > %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj > %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj > %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj > %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj > %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj > %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj > %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj > %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj > %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj > %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 2, @"ANY intObj >= %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 2, @"ANY floatObj >= %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 2, @"ANY doubleObj >= %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 2, @"ANY dateObj >= %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 2, @"ANY decimalObj >= %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2, @"ANY intObj >= %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2, @"ANY floatObj >= %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2, @"ANY doubleObj >= %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2, @"ANY dateObj >= %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2, @"ANY decimalObj >= %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 2, @"ANY intObj >= %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 2, @"ANY floatObj >= %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 2, @"ANY doubleObj >= %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 2, @"ANY dateObj >= %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 2, @"ANY decimalObj >= %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2, @"ANY intObj >= %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2, @"ANY floatObj >= %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2, @"ANY doubleObj >= %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2, @"ANY dateObj >= %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2, @"ANY decimalObj >= %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj < %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj < %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj < %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj < %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj < %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj < %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj < %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj < %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj < %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj < %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj < %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj < %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj < %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj < %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj < %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj < %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj < %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj < %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj < %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj < %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj < %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj < %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj < %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj < %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj < %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj < %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj < %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj < %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj < %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj < %@", decimal128(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj < %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj < %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj < %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj < %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj < %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj < %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj < %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj < %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj < %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj < %@", decimal128(2));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj <= %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj <= %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj <= %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj <= %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj <= %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj <= %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj <= %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj <= %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj <= %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj <= %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj <= %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj <= %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj <= %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj <= %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj <= %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj <= %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj <= %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj <= %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj <= %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj <= %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 2, @"ANY intObj <= %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 2, @"ANY floatObj <= %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 2, @"ANY doubleObj <= %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 2, @"ANY dateObj <= %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 2, @"ANY decimalObj <= %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2, @"ANY intObj <= %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2, @"ANY floatObj <= %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2, @"ANY doubleObj <= %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2, @"ANY dateObj <= %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2, @"ANY decimalObj <= %@", decimal128(2));
+    RLMAssertCount(AllPrimitiveArrays, 2, @"ANY intObj <= %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 2, @"ANY floatObj <= %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 2, @"ANY doubleObj <= %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 2, @"ANY dateObj <= %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 2, @"ANY decimalObj <= %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2, @"ANY intObj <= %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2, @"ANY floatObj <= %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2, @"ANY doubleObj <= %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2, @"ANY dateObj <= %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2, @"ANY decimalObj <= %@", decimal128(2));
+
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"ANY boolObj > %@", @NO]),
+                              @"Operator '>' not supported for type 'bool'");
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"ANY stringObj > %@", @"a"]),
+                              @"Operator '>' not supported for type 'string'");
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"ANY dataObj > %@", data(1)]),
+                              @"Operator '>' not supported for type 'data'");
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"ANY objectIdObj > %@", objectId(1)]),
+                              @"Operator '>' not supported for type 'object id'");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"ANY boolObj > %@", @NO]),
+                              @"Operator '>' not supported for type 'bool'");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"ANY stringObj > %@", @"a"]),
+                              @"Operator '>' not supported for type 'string'");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"ANY dataObj > %@", data(1)]),
+                              @"Operator '>' not supported for type 'data'");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"ANY objectIdObj > %@", objectId(1)]),
+                              @"Operator '>' not supported for type 'object id'");
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"ANY boolObj > %@", @NO]),
+                              @"Operator '>' not supported for type 'bool'");
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"ANY stringObj > %@", @"a"]),
+                              @"Operator '>' not supported for type 'string'");
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"ANY dataObj > %@", data(1)]),
+                              @"Operator '>' not supported for type 'data'");
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"ANY objectIdObj > %@", objectId(1)]),
+                              @"Operator '>' not supported for type 'object id'");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"ANY boolObj > %@", @NO]),
+                              @"Operator '>' not supported for type 'bool'");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"ANY stringObj > %@", @"a"]),
+                              @"Operator '>' not supported for type 'string'");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"ANY dataObj > %@", data(1)]),
+                              @"Operator '>' not supported for type 'data'");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"ANY objectIdObj > %@", objectId(1)]),
+                              @"Operator '>' not supported for type 'object id'");
+}
+
+- (void)testQueryBetween {
+    [realm deleteAllObjects];
+
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"ANY boolObj BETWEEN %@", @[@NO, @YES]]),
+                              @"Operator 'BETWEEN' not supported for type 'bool'");
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"ANY stringObj BETWEEN %@", @[@"a", @"b"]]),
+                              @"Operator 'BETWEEN' not supported for type 'string'");
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"ANY dataObj BETWEEN %@", @[data(1), data(2)]]),
+                              @"Operator 'BETWEEN' not supported for type 'data'");
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"ANY objectIdObj BETWEEN %@", @[objectId(1), objectId(2)]]),
+                              @"Operator 'BETWEEN' not supported for type 'object id'");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"ANY boolObj BETWEEN %@", @[@NO, @YES]]),
+                              @"Operator 'BETWEEN' not supported for type 'bool'");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"ANY stringObj BETWEEN %@", @[@"a", @"b"]]),
+                              @"Operator 'BETWEEN' not supported for type 'string'");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"ANY dataObj BETWEEN %@", @[data(1), data(2)]]),
+                              @"Operator 'BETWEEN' not supported for type 'data'");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"ANY objectIdObj BETWEEN %@", @[objectId(1), objectId(2)]]),
+                              @"Operator 'BETWEEN' not supported for type 'object id'");
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"ANY boolObj BETWEEN %@", @[@NO, @YES]]),
+                              @"Operator 'BETWEEN' not supported for type 'bool'");
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"ANY stringObj BETWEEN %@", @[@"a", @"b"]]),
+                              @"Operator 'BETWEEN' not supported for type 'string'");
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"ANY dataObj BETWEEN %@", @[data(1), data(2)]]),
+                              @"Operator 'BETWEEN' not supported for type 'data'");
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"ANY objectIdObj BETWEEN %@", @[objectId(1), objectId(2)]]),
+                              @"Operator 'BETWEEN' not supported for type 'object id'");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"ANY boolObj BETWEEN %@", @[@NO, @YES]]),
+                              @"Operator 'BETWEEN' not supported for type 'bool'");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"ANY stringObj BETWEEN %@", @[@"a", @"b"]]),
+                              @"Operator 'BETWEEN' not supported for type 'string'");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"ANY dataObj BETWEEN %@", @[data(1), data(2)]]),
+                              @"Operator 'BETWEEN' not supported for type 'data'");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"ANY objectIdObj BETWEEN %@", @[objectId(1), objectId(2)]]),
+                              @"Operator 'BETWEEN' not supported for type 'object id'");
+
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj BETWEEN %@", @[@2, @3]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj BETWEEN %@", @[@2.2f, @3.3f]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj BETWEEN %@", @[@2.2, @3.3]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj BETWEEN %@", @[date(1), date(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj BETWEEN %@", @[decimal128(1), decimal128(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj BETWEEN %@", @[@2, @3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj BETWEEN %@", @[@2.2f, @3.3f]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj BETWEEN %@", @[@2.2, @3.3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj BETWEEN %@", @[date(1), date(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj BETWEEN %@", @[decimal128(1), decimal128(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj BETWEEN %@", @[@2, @3]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj BETWEEN %@", @[@2.2f, @3.3f]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj BETWEEN %@", @[@2.2, @3.3]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj BETWEEN %@", @[date(1), date(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj BETWEEN %@", @[decimal128(1), decimal128(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj BETWEEN %@", @[@2, @3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj BETWEEN %@", @[@2.2f, @3.3f]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj BETWEEN %@", @[@2.2, @3.3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj BETWEEN %@", @[date(1), date(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj BETWEEN %@", @[decimal128(1), decimal128(2)]);
+
+    [self createObjectWithValueIndex:0];
+
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj BETWEEN %@", @[@2, @2]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj BETWEEN %@", @[@2.2f, @2.2f]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj BETWEEN %@", @[@2.2, @2.2]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj BETWEEN %@", @[date(1), date(1)]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj BETWEEN %@", @[decimal128(1), decimal128(1)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj BETWEEN %@", @[@2, @2]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj BETWEEN %@", @[@2.2f, @2.2f]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj BETWEEN %@", @[@2.2, @2.2]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj BETWEEN %@", @[date(1), date(1)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj BETWEEN %@", @[decimal128(1), decimal128(1)]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj BETWEEN %@", @[@2, @2]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj BETWEEN %@", @[@2.2f, @2.2f]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj BETWEEN %@", @[@2.2, @2.2]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj BETWEEN %@", @[date(1), date(1)]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj BETWEEN %@", @[decimal128(1), decimal128(1)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj BETWEEN %@", @[@2, @2]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj BETWEEN %@", @[@2.2f, @2.2f]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj BETWEEN %@", @[@2.2, @2.2]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj BETWEEN %@", @[date(1), date(1)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj BETWEEN %@", @[decimal128(1), decimal128(1)]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj BETWEEN %@", @[@2, @3]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj BETWEEN %@", @[@2.2f, @3.3f]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj BETWEEN %@", @[@2.2, @3.3]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj BETWEEN %@", @[date(1), date(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj BETWEEN %@", @[decimal128(1), decimal128(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj BETWEEN %@", @[@2, @3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj BETWEEN %@", @[@2.2f, @3.3f]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj BETWEEN %@", @[@2.2, @3.3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj BETWEEN %@", @[date(1), date(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj BETWEEN %@", @[decimal128(1), decimal128(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj BETWEEN %@", @[@2, @3]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj BETWEEN %@", @[@2.2f, @3.3f]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj BETWEEN %@", @[@2.2, @3.3]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj BETWEEN %@", @[date(1), date(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj BETWEEN %@", @[decimal128(1), decimal128(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj BETWEEN %@", @[@2, @3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj BETWEEN %@", @[@2.2f, @3.3f]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj BETWEEN %@", @[@2.2, @3.3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj BETWEEN %@", @[date(1), date(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj BETWEEN %@", @[decimal128(1), decimal128(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj BETWEEN %@", @[@3, @3]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj BETWEEN %@", @[@3.3f, @3.3f]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj BETWEEN %@", @[@3.3, @3.3]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj BETWEEN %@", @[date(2), date(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj BETWEEN %@", @[decimal128(2), decimal128(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj BETWEEN %@", @[@3, @3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj BETWEEN %@", @[@3.3f, @3.3f]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj BETWEEN %@", @[@3.3, @3.3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj BETWEEN %@", @[date(2), date(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj BETWEEN %@", @[decimal128(2), decimal128(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj BETWEEN %@", @[@3, @3]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj BETWEEN %@", @[@3.3f, @3.3f]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj BETWEEN %@", @[@3.3, @3.3]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj BETWEEN %@", @[date(2), date(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj BETWEEN %@", @[decimal128(2), decimal128(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj BETWEEN %@", @[@3, @3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj BETWEEN %@", @[@3.3f, @3.3f]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj BETWEEN %@", @[@3.3, @3.3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj BETWEEN %@", @[date(2), date(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj BETWEEN %@", @[decimal128(2), decimal128(2)]);
+}
+
+- (void)testQueryIn {
+    [realm deleteAllObjects];
+
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY boolObj IN %@", @[@NO, @YES]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj IN %@", @[@2, @3]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj IN %@", @[@2.2f, @3.3f]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj IN %@", @[@2.2, @3.3]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY stringObj IN %@", @[@"a", @"b"]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dataObj IN %@", @[data(1), data(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj IN %@", @[date(1), date(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj IN %@", @[decimal128(1), decimal128(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY objectIdObj IN %@", @[objectId(1), objectId(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY boolObj IN %@", @[@NO, @YES]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj IN %@", @[@2, @3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj IN %@", @[@2.2f, @3.3f]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj IN %@", @[@2.2, @3.3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY stringObj IN %@", @[@"a", @"b"]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dataObj IN %@", @[data(1), data(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj IN %@", @[date(1), date(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj IN %@", @[decimal128(1), decimal128(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY objectIdObj IN %@", @[objectId(1), objectId(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY boolObj IN %@", @[@NO, @YES]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj IN %@", @[@2, @3]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj IN %@", @[@2.2f, @3.3f]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj IN %@", @[@2.2, @3.3]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY stringObj IN %@", @[@"a", @"b"]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dataObj IN %@", @[data(1), data(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj IN %@", @[date(1), date(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj IN %@", @[decimal128(1), decimal128(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY objectIdObj IN %@", @[objectId(1), objectId(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY boolObj IN %@", @[@NO, @YES]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj IN %@", @[@2, @3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj IN %@", @[@2.2f, @3.3f]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj IN %@", @[@2.2, @3.3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY stringObj IN %@", @[@"a", @"b"]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dataObj IN %@", @[data(1), data(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj IN %@", @[date(1), date(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj IN %@", @[decimal128(1), decimal128(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY objectIdObj IN %@", @[objectId(1), objectId(2)]);
+
+    [self createObjectWithValueIndex:0];
+
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY boolObj IN %@", @[@YES]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj IN %@", @[@3]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj IN %@", @[@3.3f]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj IN %@", @[@3.3]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY stringObj IN %@", @[@"b"]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dataObj IN %@", @[data(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj IN %@", @[date(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj IN %@", @[decimal128(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY objectIdObj IN %@", @[objectId(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY boolObj IN %@", @[@YES]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj IN %@", @[@3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj IN %@", @[@3.3f]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj IN %@", @[@3.3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY stringObj IN %@", @[@"b"]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dataObj IN %@", @[data(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj IN %@", @[date(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj IN %@", @[decimal128(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY objectIdObj IN %@", @[objectId(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY boolObj IN %@", @[@YES]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY intObj IN %@", @[@3]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY floatObj IN %@", @[@3.3f]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY doubleObj IN %@", @[@3.3]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY stringObj IN %@", @[@"b"]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dataObj IN %@", @[data(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY dateObj IN %@", @[date(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY decimalObj IN %@", @[decimal128(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 0, @"ANY objectIdObj IN %@", @[objectId(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY boolObj IN %@", @[@YES]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY intObj IN %@", @[@3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY floatObj IN %@", @[@3.3f]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY doubleObj IN %@", @[@3.3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY stringObj IN %@", @[@"b"]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dataObj IN %@", @[data(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY dateObj IN %@", @[date(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY decimalObj IN %@", @[decimal128(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0, @"ANY objectIdObj IN %@", @[objectId(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY boolObj IN %@", @[@NO, @YES]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj IN %@", @[@2, @3]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj IN %@", @[@2.2f, @3.3f]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj IN %@", @[@2.2, @3.3]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY stringObj IN %@", @[@"a", @"b"]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dataObj IN %@", @[data(1), data(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj IN %@", @[date(1), date(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj IN %@", @[decimal128(1), decimal128(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY objectIdObj IN %@", @[objectId(1), objectId(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY boolObj IN %@", @[@NO, @YES]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj IN %@", @[@2, @3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj IN %@", @[@2.2f, @3.3f]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj IN %@", @[@2.2, @3.3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY stringObj IN %@", @[@"a", @"b"]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dataObj IN %@", @[data(1), data(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj IN %@", @[date(1), date(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj IN %@", @[decimal128(1), decimal128(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY objectIdObj IN %@", @[objectId(1), objectId(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY boolObj IN %@", @[@NO, @YES]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY intObj IN %@", @[@2, @3]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY floatObj IN %@", @[@2.2f, @3.3f]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY doubleObj IN %@", @[@2.2, @3.3]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY stringObj IN %@", @[@"a", @"b"]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dataObj IN %@", @[data(1), data(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY dateObj IN %@", @[date(1), date(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY decimalObj IN %@", @[decimal128(1), decimal128(2)]);
+    RLMAssertCount(AllPrimitiveArrays, 1, @"ANY objectIdObj IN %@", @[objectId(1), objectId(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY boolObj IN %@", @[@NO, @YES]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY intObj IN %@", @[@2, @3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY floatObj IN %@", @[@2.2f, @3.3f]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY doubleObj IN %@", @[@2.2, @3.3]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY stringObj IN %@", @[@"a", @"b"]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dataObj IN %@", @[data(1), data(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY dateObj IN %@", @[date(1), date(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY decimalObj IN %@", @[decimal128(1), decimal128(2)]);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1, @"ANY objectIdObj IN %@", @[objectId(1), objectId(2)]);
+}
+
+- (void)testQueryCount {
+    [realm deleteAllObjects];
+
+    [AllPrimitiveArrays createInRealm:realm withValue:@{
+        @"boolObj": @[],
+        @"intObj": @[],
+        @"floatObj": @[],
+        @"doubleObj": @[],
+        @"stringObj": @[],
+        @"dataObj": @[],
+        @"dateObj": @[],
+        @"decimalObj": @[],
+        @"objectIdObj": @[],
+    }];
+    [AllOptionalPrimitiveArrays createInRealm:realm withValue:@{
+        @"boolObj": @[],
+        @"intObj": @[],
+        @"floatObj": @[],
+        @"doubleObj": @[],
+        @"stringObj": @[],
+        @"dataObj": @[],
+        @"dateObj": @[],
+        @"decimalObj": @[],
+        @"objectIdObj": @[],
+    }];
+    [AllPrimitiveArrays createInRealm:realm withValue:@{
+        @"boolObj": @[@NO],
+        @"intObj": @[@2],
+        @"floatObj": @[@2.2f],
+        @"doubleObj": @[@2.2],
+        @"stringObj": @[@"a"],
+        @"dataObj": @[data(1)],
+        @"dateObj": @[date(1)],
+        @"decimalObj": @[decimal128(1)],
+        @"objectIdObj": @[objectId(1)],
+    }];
+    [AllOptionalPrimitiveArrays createInRealm:realm withValue:@{
+        @"boolObj": @[@NO],
+        @"intObj": @[@2],
+        @"floatObj": @[@2.2f],
+        @"doubleObj": @[@2.2],
+        @"stringObj": @[@"a"],
+        @"dataObj": @[data(1)],
+        @"dateObj": @[date(1)],
+        @"decimalObj": @[decimal128(1)],
+        @"objectIdObj": @[objectId(1)],
+    }];
+    [AllPrimitiveArrays createInRealm:realm withValue:@{
+        @"boolObj": @[@NO, @NO],
+        @"intObj": @[@2, @2],
+        @"floatObj": @[@2.2f, @2.2f],
+        @"doubleObj": @[@2.2, @2.2],
+        @"stringObj": @[@"a", @"a"],
+        @"dataObj": @[data(1), data(1)],
+        @"dateObj": @[date(1), date(1)],
+        @"decimalObj": @[decimal128(1), decimal128(1)],
+        @"objectIdObj": @[objectId(1), objectId(1)],
+    }];
+    [AllOptionalPrimitiveArrays createInRealm:realm withValue:@{
+        @"boolObj": @[@NO, @NO],
+        @"intObj": @[@2, @2],
+        @"floatObj": @[@2.2f, @2.2f],
+        @"doubleObj": @[@2.2, @2.2],
+        @"stringObj": @[@"a", @"a"],
+        @"dataObj": @[data(1), data(1)],
+        @"dateObj": @[date(1), date(1)],
+        @"decimalObj": @[decimal128(1), decimal128(1)],
+        @"objectIdObj": @[objectId(1), objectId(1)],
+    }];
+
+    for (unsigned int i = 0; i < 3; ++i) {
+        RLMAssertCount(AllPrimitiveArrays, 1U, @"boolObj.@count == %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 1U, @"intObj.@count == %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 1U, @"floatObj.@count == %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 1U, @"doubleObj.@count == %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 1U, @"stringObj.@count == %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 1U, @"dataObj.@count == %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 1U, @"dateObj.@count == %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 1U, @"decimalObj.@count == %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 1U, @"objectIdObj.@count == %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"boolObj.@count == %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"intObj.@count == %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"floatObj.@count == %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"doubleObj.@count == %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"stringObj.@count == %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"dataObj.@count == %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"dateObj.@count == %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"decimalObj.@count == %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"objectIdObj.@count == %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 2U, @"boolObj.@count != %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 2U, @"intObj.@count != %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 2U, @"floatObj.@count != %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 2U, @"doubleObj.@count != %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 2U, @"stringObj.@count != %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 2U, @"dataObj.@count != %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 2U, @"dateObj.@count != %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 2U, @"decimalObj.@count != %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 2U, @"objectIdObj.@count != %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 2U, @"boolObj.@count != %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 2U, @"intObj.@count != %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 2U, @"floatObj.@count != %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 2U, @"doubleObj.@count != %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 2U, @"stringObj.@count != %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 2U, @"dataObj.@count != %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 2U, @"dateObj.@count != %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 2U, @"decimalObj.@count != %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 2U, @"objectIdObj.@count != %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 2 - i, @"boolObj.@count > %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 2 - i, @"intObj.@count > %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 2 - i, @"floatObj.@count > %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 2 - i, @"doubleObj.@count > %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 2 - i, @"stringObj.@count > %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 2 - i, @"dataObj.@count > %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 2 - i, @"dateObj.@count > %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 2 - i, @"decimalObj.@count > %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 2 - i, @"objectIdObj.@count > %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 2 - i, @"boolObj.@count > %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 2 - i, @"intObj.@count > %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 2 - i, @"floatObj.@count > %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 2 - i, @"doubleObj.@count > %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 2 - i, @"stringObj.@count > %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 2 - i, @"dataObj.@count > %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 2 - i, @"dateObj.@count > %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 2 - i, @"decimalObj.@count > %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 2 - i, @"objectIdObj.@count > %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 3 - i, @"boolObj.@count >= %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 3 - i, @"intObj.@count >= %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 3 - i, @"floatObj.@count >= %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 3 - i, @"doubleObj.@count >= %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 3 - i, @"stringObj.@count >= %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 3 - i, @"dataObj.@count >= %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 3 - i, @"dateObj.@count >= %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 3 - i, @"decimalObj.@count >= %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, 3 - i, @"objectIdObj.@count >= %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 3 - i, @"boolObj.@count >= %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 3 - i, @"intObj.@count >= %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 3 - i, @"floatObj.@count >= %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 3 - i, @"doubleObj.@count >= %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 3 - i, @"stringObj.@count >= %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 3 - i, @"dataObj.@count >= %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 3 - i, @"dateObj.@count >= %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 3 - i, @"decimalObj.@count >= %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, 3 - i, @"objectIdObj.@count >= %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, i, @"boolObj.@count < %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, i, @"intObj.@count < %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, i, @"floatObj.@count < %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, i, @"doubleObj.@count < %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, i, @"stringObj.@count < %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, i, @"dataObj.@count < %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, i, @"dateObj.@count < %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, i, @"decimalObj.@count < %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, i, @"objectIdObj.@count < %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, i, @"boolObj.@count < %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, i, @"intObj.@count < %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, i, @"floatObj.@count < %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, i, @"doubleObj.@count < %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, i, @"stringObj.@count < %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, i, @"dataObj.@count < %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, i, @"dateObj.@count < %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, i, @"decimalObj.@count < %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, i, @"objectIdObj.@count < %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, i + 1, @"boolObj.@count <= %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, i + 1, @"intObj.@count <= %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, i + 1, @"floatObj.@count <= %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, i + 1, @"doubleObj.@count <= %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, i + 1, @"stringObj.@count <= %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, i + 1, @"dataObj.@count <= %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, i + 1, @"dateObj.@count <= %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, i + 1, @"decimalObj.@count <= %@", @(i));
+        RLMAssertCount(AllPrimitiveArrays, i + 1, @"objectIdObj.@count <= %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, i + 1, @"boolObj.@count <= %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, i + 1, @"intObj.@count <= %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, i + 1, @"floatObj.@count <= %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, i + 1, @"doubleObj.@count <= %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, i + 1, @"stringObj.@count <= %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, i + 1, @"dataObj.@count <= %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, i + 1, @"dateObj.@count <= %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, i + 1, @"decimalObj.@count <= %@", @(i));
+        RLMAssertCount(AllOptionalPrimitiveArrays, i + 1, @"objectIdObj.@count <= %@", @(i));
+    }
+}
+
+- (void)testQuerySum {
+}
+
+- (void)testQueryAverage {
+}
+
+- (void)testQueryMin {
+    [realm deleteAllObjects];
+
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"boolObj.@min = %@", @NO]),
+                              @"@min can only be applied to a numeric property.");
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"stringObj.@min = %@", @"a"]),
+                              @"@min can only be applied to a numeric property.");
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"dataObj.@min = %@", data(1)]),
+                              @"@min can only be applied to a numeric property.");
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"objectIdObj.@min = %@", objectId(1)]),
+                              @"@min can only be applied to a numeric property.");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"boolObj.@min = %@", @NO]),
+                              @"@min can only be applied to a numeric property.");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"stringObj.@min = %@", @"a"]),
+                              @"@min can only be applied to a numeric property.");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"dataObj.@min = %@", data(1)]),
+                              @"@min can only be applied to a numeric property.");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"objectIdObj.@min = %@", objectId(1)]),
+                              @"@min can only be applied to a numeric property.");
+
+    // No objects, so count is zero
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"intObj.@min == %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"floatObj.@min == %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"doubleObj.@min == %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"dateObj.@min == %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"decimalObj.@min == %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"intObj.@min == %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"floatObj.@min == %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"doubleObj.@min == %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"dateObj.@min == %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"decimalObj.@min == %@", decimal128(1));
+
+    [AllPrimitiveArrays createInRealm:realm withValue:@{}];
+    [AllOptionalPrimitiveArrays createInRealm:realm withValue:@{}];
+
+    // Only empty arrays, so count is zero
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"intObj.@min == %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"floatObj.@min == %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"doubleObj.@min == %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"dateObj.@min == %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"decimalObj.@min == %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"intObj.@min == %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"floatObj.@min == %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"doubleObj.@min == %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"dateObj.@min == %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"decimalObj.@min == %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"intObj.@min == %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"floatObj.@min == %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"doubleObj.@min == %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"dateObj.@min == %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"decimalObj.@min == %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"intObj.@min == %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"floatObj.@min == %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"doubleObj.@min == %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"dateObj.@min == %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"decimalObj.@min == %@", decimal128(2));
+
+    [self createObjectWithValueIndex:0];
+
+    // One object where v0 is min and zero with v1
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"intObj.@min == %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"floatObj.@min == %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"doubleObj.@min == %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"dateObj.@min == %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"decimalObj.@min == %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"intObj.@min == %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"floatObj.@min == %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"doubleObj.@min == %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"dateObj.@min == %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"decimalObj.@min == %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"intObj.@min == %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"floatObj.@min == %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"doubleObj.@min == %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"dateObj.@min == %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"decimalObj.@min == %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"intObj.@min == %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"floatObj.@min == %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"doubleObj.@min == %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"dateObj.@min == %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"decimalObj.@min == %@", decimal128(2));
+
+    [self createObjectWithValueIndex:1];
+
+    // One object where v0 is min and one with v1
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"intObj.@min == %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"floatObj.@min == %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"doubleObj.@min == %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"dateObj.@min == %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"decimalObj.@min == %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"intObj.@min == %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"floatObj.@min == %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"doubleObj.@min == %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"dateObj.@min == %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"decimalObj.@min == %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"intObj.@min == %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"floatObj.@min == %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"doubleObj.@min == %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"dateObj.@min == %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"decimalObj.@min == %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"intObj.@min == %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"floatObj.@min == %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"doubleObj.@min == %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"dateObj.@min == %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"decimalObj.@min == %@", decimal128(2));
+
+    [AllPrimitiveArrays createInRealm:realm withValue:@{
+        @"intObj": @[@3, @2],
+        @"floatObj": @[@3.3f, @2.2f],
+        @"doubleObj": @[@3.3, @2.2],
+        @"dateObj": @[date(2), date(1)],
+        @"decimalObj": @[decimal128(2), decimal128(1)],
+    }];
+    [AllOptionalPrimitiveArrays createInRealm:realm withValue:@{
+        @"intObj": @[@3, @2],
+        @"floatObj": @[@3.3f, @2.2f],
+        @"doubleObj": @[@3.3, @2.2],
+        @"dateObj": @[date(2), date(1)],
+        @"decimalObj": @[decimal128(2), decimal128(1)],
+    }];
+
+    // New object with both v0 and v1 matches v0 but not v1
+    RLMAssertCount(AllPrimitiveArrays, 2U, @"intObj.@min == %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 2U, @"floatObj.@min == %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 2U, @"doubleObj.@min == %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 2U, @"dateObj.@min == %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 2U, @"decimalObj.@min == %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2U, @"intObj.@min == %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2U, @"floatObj.@min == %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2U, @"doubleObj.@min == %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2U, @"dateObj.@min == %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2U, @"decimalObj.@min == %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"intObj.@min == %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"floatObj.@min == %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"doubleObj.@min == %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"dateObj.@min == %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"decimalObj.@min == %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"intObj.@min == %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"floatObj.@min == %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"doubleObj.@min == %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"dateObj.@min == %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"decimalObj.@min == %@", decimal128(2));
+}
+
+- (void)testQueryMax {
+    [realm deleteAllObjects];
+
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"boolObj.@max = %@", @NO]),
+                              @"@max can only be applied to a numeric property.");
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"stringObj.@max = %@", @"a"]),
+                              @"@max can only be applied to a numeric property.");
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"dataObj.@max = %@", data(1)]),
+                              @"@max can only be applied to a numeric property.");
+    RLMAssertThrowsWithReason(([AllPrimitiveArrays objectsInRealm:realm where:@"objectIdObj.@max = %@", objectId(1)]),
+                              @"@max can only be applied to a numeric property.");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"boolObj.@max = %@", @NO]),
+                              @"@max can only be applied to a numeric property.");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"stringObj.@max = %@", @"a"]),
+                              @"@max can only be applied to a numeric property.");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"dataObj.@max = %@", data(1)]),
+                              @"@max can only be applied to a numeric property.");
+    RLMAssertThrowsWithReason(([AllOptionalPrimitiveArrays objectsInRealm:realm where:@"objectIdObj.@max = %@", objectId(1)]),
+                              @"@max can only be applied to a numeric property.");
+
+    // No objects, so count is zero
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"intObj.@max == %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"floatObj.@max == %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"doubleObj.@max == %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"dateObj.@max == %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"decimalObj.@max == %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"intObj.@max == %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"floatObj.@max == %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"doubleObj.@max == %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"dateObj.@max == %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"decimalObj.@max == %@", decimal128(1));
+
+    [AllPrimitiveArrays createInRealm:realm withValue:@{}];
+    [AllOptionalPrimitiveArrays createInRealm:realm withValue:@{}];
+
+    // Only empty arrays, so count is zero
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"intObj.@max == %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"floatObj.@max == %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"doubleObj.@max == %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"dateObj.@max == %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"decimalObj.@max == %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"intObj.@max == %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"floatObj.@max == %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"doubleObj.@max == %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"dateObj.@max == %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"decimalObj.@max == %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"intObj.@max == %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"floatObj.@max == %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"doubleObj.@max == %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"dateObj.@max == %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"decimalObj.@max == %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"intObj.@max == %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"floatObj.@max == %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"doubleObj.@max == %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"dateObj.@max == %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"decimalObj.@max == %@", decimal128(2));
+
+    [self createObjectWithValueIndex:0];
+
+    // One object where v0 is min and zero with v1
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"intObj.@max == %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"floatObj.@max == %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"doubleObj.@max == %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"dateObj.@max == %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"decimalObj.@max == %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"intObj.@max == %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"floatObj.@max == %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"doubleObj.@max == %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"dateObj.@max == %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"decimalObj.@max == %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"intObj.@max == %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"floatObj.@max == %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"doubleObj.@max == %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"dateObj.@max == %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 0U, @"decimalObj.@max == %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"intObj.@max == %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"floatObj.@max == %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"doubleObj.@max == %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"dateObj.@max == %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 0U, @"decimalObj.@max == %@", decimal128(2));
+
+    [self createObjectWithValueIndex:1];
+
+    // One object where v0 is min and one with v1
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"intObj.@max == %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"floatObj.@max == %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"doubleObj.@max == %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"dateObj.@max == %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"decimalObj.@max == %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"intObj.@max == %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"floatObj.@max == %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"doubleObj.@max == %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"dateObj.@max == %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"decimalObj.@max == %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"intObj.@max == %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"floatObj.@max == %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"doubleObj.@max == %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"dateObj.@max == %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"decimalObj.@max == %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"intObj.@max == %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"floatObj.@max == %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"doubleObj.@max == %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"dateObj.@max == %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"decimalObj.@max == %@", decimal128(2));
+
+    [AllPrimitiveArrays createInRealm:realm withValue:@{
+        @"intObj": @[@3, @2],
+        @"floatObj": @[@3.3f, @2.2f],
+        @"doubleObj": @[@3.3, @2.2],
+        @"dateObj": @[date(2), date(1)],
+        @"decimalObj": @[decimal128(2), decimal128(1)],
+    }];
+    [AllOptionalPrimitiveArrays createInRealm:realm withValue:@{
+        @"intObj": @[@3, @2],
+        @"floatObj": @[@3.3f, @2.2f],
+        @"doubleObj": @[@3.3, @2.2],
+        @"dateObj": @[date(2), date(1)],
+        @"decimalObj": @[decimal128(2), decimal128(1)],
+    }];
+
+    // New object with both v0 and v1 matches v1 but not v0
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"intObj.@max == %@", @2);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"floatObj.@max == %@", @2.2f);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"doubleObj.@max == %@", @2.2);
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"dateObj.@max == %@", date(1));
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"decimalObj.@max == %@", decimal128(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"intObj.@max == %@", @2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"floatObj.@max == %@", @2.2f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"doubleObj.@max == %@", @2.2);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"dateObj.@max == %@", date(1));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 1U, @"decimalObj.@max == %@", decimal128(1));
+    RLMAssertCount(AllPrimitiveArrays, 2U, @"intObj.@max == %@", @3);
+    RLMAssertCount(AllPrimitiveArrays, 2U, @"floatObj.@max == %@", @3.3f);
+    RLMAssertCount(AllPrimitiveArrays, 2U, @"doubleObj.@max == %@", @3.3);
+    RLMAssertCount(AllPrimitiveArrays, 2U, @"dateObj.@max == %@", date(2));
+    RLMAssertCount(AllPrimitiveArrays, 2U, @"decimalObj.@max == %@", decimal128(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2U, @"intObj.@max == %@", @3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2U, @"floatObj.@max == %@", @3.3f);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2U, @"doubleObj.@max == %@", @3.3);
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2U, @"dateObj.@max == %@", date(2));
+    RLMAssertCount(AllOptionalPrimitiveArrays, 2U, @"decimalObj.@max == %@", decimal128(2));
+}
+
+- (void)testQueryArgumentValidation {
+}
+
 @end

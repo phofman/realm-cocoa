@@ -470,16 +470,16 @@
 
     RLMResults *allObjects = [AllTypesObject allObjectsInRealm:realm];
     RLMAssertThrowsWithReason([allObjects objectsWhere:@"boolCol BETWEEN {true, false}"],
-                              @"not supported for type bool");
+                              @"Operator 'BETWEEN' not supported for type 'bool'");
     RLMAssertThrowsWithReason([allObjects objectsWhere:@"stringCol BETWEEN {'', ''}"],
-                              @"not supported for type string");
+                              @"Operator 'BETWEEN' not supported for type 'string'");
     RLMAssertThrowsWithReason(([allObjects objectsWhere:@"binaryCol BETWEEN %@", @[NSData.data, NSData.data]]),
-                              @"not supported for type data");
+                              @"Operator 'BETWEEN' not supported for type 'data'");
     RLMAssertThrowsWithReason([allObjects objectsWhere:@"cBoolCol BETWEEN {true, false}"],
-                              @"not supported for type bool");
+                              @"Operator 'BETWEEN' not supported for type 'bool'");
     RLMAssertThrowsWithReason(([allObjects objectsWhere:@"objectIdCol BETWEEN %@",
                                 @[[RLMObjectId objectId], [RLMObjectId objectId]]]),
-                              @"not supported for type object id");
+                              @"Operator 'BETWEEN' not supported for type 'object id'");
 }
 
 - (void)testQueryWithDates {
@@ -2400,6 +2400,28 @@
     RLMAssertThrowsWithReasonMatching(([IntegerArrayPropertyObject objectsWhere:@"array.@max.intCol == 1.23"]), @"@max.*type int cannot be compared");
     RLMAssertThrowsWithReasonMatching(([IntegerArrayPropertyObject objectsWhere:@"array.@sum.intCol == 1.23"]), @"@sum.*type int cannot be compared");
 }
+
+- (void)testArraysOfPrimitives {
+    RLMRealm *realm = [self realm];
+    [realm beginWriteTransaction];
+
+    NSDate *date = [NSDate date];
+    NSData *bytes = [NSData dataWithBytes:"a" length:1];
+    [AllPrimitiveArrays createInRealm:realm
+                            withValue:@{@"intObj": @[@1, @2, @3],
+                                        @"boolObj": @[@YES, @NO],
+                                        @"floatObj": @[@1.1f, @2.2f],
+                                        @"doubleObj": @[@3.3, @4.4],
+                                        @"stringObj": @[@"a", @"b"],
+                                        @"dateObj": @[date],
+                                        @"dataObj": @[bytes]}];
+    [realm commitWriteTransaction];
+
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"ANY intObj == 2");
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"intObj.@count == 3");
+    RLMAssertCount(AllPrimitiveArrays, 1U, @"intObj.@sum == 6");
+}
+
 
 @end
 

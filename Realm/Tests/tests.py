@@ -57,35 +57,48 @@ types = [{'class': t[0], 'obj': t[1], 'prop': t[2], 'v0': t[3][0], 'v1': t[3][1]
           }
          for t in types]
 
+# For testing error handling we need a value of the wrong type. By default this
+# is a string, so for string types we need to set it to a number instead
 for string_type in (t for t in types if 'string' in t['tags']):
     string_type['wrong'] = '@2'
     string_type['wdesc'] = '2'
     string_type['wtype'] = '__NSCFNumber'
 
+# We extract the type name from the property name, but object id and decimal128
+# don't have names that work for this
 for type in types:
     type['type'] = type['type'].replace('objectId', 'object id').replace('decimal', 'decimal128')
+    type['basetype'] = type['type'].replace('?', '')
 
 file = open(os.path.dirname(__file__) + '/PrimitiveArrayPropertyTests.tpl.m', 'rt')
 for line in file:
+    # Lines without anything to expand just appear as-is
     if not '$' in line:
         print line,
         continue
+
     if '$allArrays' in line:
         line = line.replace(' ^n', '\n' + ' ' * (line.find('(') + 4))
         print '    for (RLMArray *array in allArrays) {\n    ' + line.replace('$allArrays', 'array') + '    }'
         continue
 
     filtered_types = types
-
     start = 0
     end = len(types)
+    # Limit the types to the ones which match all of the tags present in the
+    # line, then remove the tags from the line
     for tag in re.findall(r'\%([a-z]+)', line):
         filtered_types = [t for t in filtered_types if tag in t['tags']]
         line = line.replace('%' + tag + ' ', '')
 
+    # Places where we want multiple output lines from one input line use ^nl
+    # for subsequent statements and ^n for things which should be indented within
+    # parentheses. This is a pretty half-hearted attempt at producing properly
+    # indented output.
     line = line.replace(' ^nl ', '\n    ')
     line = line.replace(' ^n', '\n' + ' ' * line.find('('))
 
+    # Repeat each line for each type, replacing variables with values from the dictionary
     for t in filtered_types:
         l = line
         for k, v in t.iteritems():
