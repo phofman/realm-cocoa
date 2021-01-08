@@ -1126,6 +1126,32 @@ EOM
         else
           sh build.sh set-swift-version
         fi
+
+        mkdir -p core/org
+        mkdir -p core/device
+        mkdir -p core/simulator
+        mv core/*.a core/org/
+
+        # Create the XCFramework with only realm-ios library
+        echo "Separating realm-ios static library by architecture..."
+        lipo -remove i386 -remove x86_64 core/org/librealmcore-ios.a -o core/device/librealmcore-ios.a
+        lipo -remove armv7 -remove arm64 core/org/librealmcore-ios.a -o core/simulator/librealmcore-ios.a
+
+        if [ -d include/core ]; then
+            xcodebuild -create-xcframework \
+                -library core/device/librealmcore-ios.a \
+                -headers include/core \
+                -library core/simulator/librealmcore-ios.a \
+                -headers include/core \
+                -output core/realmcore-ios.xcframework
+        else
+            xcodebuild -create-xcframework \
+                -library core/device/librealmcore-ios.a \
+                -headers core/include \
+                -library core/simulator/librealmcore-ios.a \
+                -headers core/include \
+                -output core/realmcore-ios.xcframework
+        fi
         ;;
 
     "xcframework-setup")
