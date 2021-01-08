@@ -1137,19 +1137,28 @@ EOM
         mv core/*.a core/org/
 
         # Create the XCFramework with only realm-ios library
-        echo "Splitting RealCore static library..."
+        echo "Separating realm-ios static library by architecture..."
         lipo -remove i386 -remove x86_64 core/org/librealm-ios.a -o core/device/librealm-ios.a
         lipo -remove armv7 -remove arm64 core/org/librealm-ios.a -o core/simulator/librealm-ios.a
 
-        echo "Creating RealCore.xcframework..."
-        xcodebuild -create-xcframework \
+        echo "Creating realm-ios.xcframework..."
+        if [ -d include/core ]; then
+            xcodebuild -create-xcframework \
                 -library core/device/librealm-ios.a \
                 -headers include/core \
                 -library core/simulator/librealm-ios.a \
                 -headers include/core \
                 -output core/realm-ios.xcframework
+        else
+            xcodebuild -create-xcframework \
+                -library core/device/librealm-ios.a \
+                -headers core/include \
+                -library core/simulator/librealm-ios.a \
+                -headers core/include \
+                -output core/realm-ios.xcframework
+        fi
 
-        echo "RealCore.xcframework completed!"
+        echo "realm-ios.xcframework completed!"
         ;;
 
     ######################################
