@@ -118,7 +118,7 @@ xc() {
     : ${NSUnbufferedIO:=YES}
     args="$@ SWIFT_VERSION=$REALM_SWIFT_VERSION $REALM_EXTRA_BUILD_ARGUMENTS"
     if [[ "$XCMODE" == "xcodebuild" ]]; then
-        xcode "$args" | xcpretty
+        xcode "$args"
     elif [[ "$XCMODE" == "xcpretty" ]]; then
         mkdir -p build
         xcode "$args" | tee build/build.log | xcpretty -c ${XCPRETTY_PARAMS} || {
