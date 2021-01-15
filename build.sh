@@ -541,7 +541,8 @@ case "$COMMAND" in
         shift
         PLATFORMS="${*:-osx ios watchos tvos catalyst}"
         for platform in $PLATFORMS; do
-            sh build.sh $platform-swift
+            REALM_EXTRA_BUILD_ARGUMENTS="$REALM_EXTRA_BUILD_ARGUMENTS SKIP_INSTALL=YES BUILD_LIBRARY_FOR_DISTRIBUTION=YES" \
+                sh build.sh $platform-swift
         done
 
         # Assemble them into xcframeworks
